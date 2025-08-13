@@ -4,24 +4,77 @@ import Script from 'next/script';
 
 export default function Home() {
   const initializeChatbot = () => {
-    // Initialize the chatbot with custom configuration
-    if (typeof window !== 'undefined' && (window as any).RayaChatbot) {
-      const chatbot = new (window as any).RayaChatbot({
-        position: 'bottom-right',
-        primaryColor: '#3b82f6',
-        timezone: 'GMT+7'
-      });
+    console.log('🔄 Starting chatbot initialization...');
+    
+    // Add a longer delay to ensure DOM is fully ready and avoid race conditions
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && window.RayaChatbot) {
+        try {
+          console.log('🚀 Initializing RayaChatbot with internal endpoints...');
+          
+          const chatbot = new window.RayaChatbot({
+            position: 'bottom-right',
+            primaryColor: '#3b82f6',
+            // Use the correct internal dev API endpoints
+            apiUrl: 'https://langflow.dev.internal.rayain.net/api/v1/run/aa032f57-c478-40ce-941e-620099e3985b',
+            apiKey: 'sk-dCg8QJblKdVNHnQJ_N9-_HvFjg0TkplPZZ2mM306rhk',
+            messagesApiUrl: 'https://langflow.dev.internal.rayain.net/api/v1/monitor/messages?flow_id=aa032f57-c478-40ce-941e-620099e3985b',
+            // Keep demo UI configuration
+            title: 'Raya Assistant',
+            subtitle: 'Bank Raya Digital Assistant',
+            welcomeTitle: 'Welcome to Raya RAG Chat',
+            welcomeSubtitle: 'Start a new conversation or browse your previous chat sessions. How can I help you today?'
+          });
 
-      // Add to global scope for debugging
-      (window as any).chatbotInstance = chatbot;
-    }
+          // Add to global scope for debugging
+          window.chatbotInstance = chatbot;
+          
+          console.log('✅ Chatbot initialized successfully with internal API endpoints');
+        } catch (error) {
+          console.error('❌ Error initializing chatbot:', error);
+          
+          // Enhanced error logging for debugging
+          if (error instanceof Error) {
+            console.log('Error details:', {
+              message: error.message,
+              stack: error.stack,
+              name: error.name,
+              cause: error.cause
+            });
+            
+            // Check if it's a network issue
+            if (error.message.includes('Failed to fetch')) {
+              console.warn('🌐 Network issue detected. This might require VPN access to internal endpoints.');
+            }
+          }
+        }
+      } else {
+        console.warn('⚠️ RayaChatbot not available on window object');
+        
+        // Retry with exponential backoff
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.RayaChatbot) {
+            console.log('🔄 Retrying chatbot initialization...');
+            initializeChatbot();
+          } else {
+            console.error('❌ RayaChatbot still not available after retry');
+          }
+        }, 2000);
+      }
+    }, 1000); // Increased delay to 1000ms to avoid race conditions
   };
 
   return (
     <>
       <Script 
         src="/dev-raya-chatbot.js" 
-        onLoad={initializeChatbot}
+        onLoad={() => {
+          console.log('📄 Chatbot script loaded successfully');
+          initializeChatbot();
+        }}
+        onError={(e) => {
+          console.error('❌ Failed to load chatbot script:', e);
+        }}
         strategy="afterInteractive"
       />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
