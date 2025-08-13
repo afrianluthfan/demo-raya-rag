@@ -54,11 +54,11 @@ export default function Home() {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                   <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Lightning Fast</h3>
-                <p className="text-gray-600">Get instant responses powered by advanced AI technology</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Natural Conversations</h3>
+                <p className="text-gray-600">Engage in human-like dialogue with contextual understanding</p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-md">
@@ -83,39 +83,23 @@ export default function Home() {
             </div>
 
             {/* Chatbot Indicator */}
-            <div className="fixed bottom-20 right-20 z-40 flex items-center space-x-3 animate-pulse">
+            <div className="fixed bottom-24 right-8 z-40 flex flex-col items-end space-y-2">
               <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
                 <p className="text-sm font-medium whitespace-nowrap">Try the chatbot! 👋</p>
               </div>
-              <div className="flex flex-col items-center">
-                <svg 
-                  className="w-6 h-6 text-blue-600 animate-bounce" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M19 14l-7 7m0 0l-7-7m7 7V3" 
-                  />
-                </svg>
-                <svg 
-                  className="w-4 h-4 text-blue-600 animate-bounce" 
-                  style={{ animationDelay: '0.1s' }}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M17 8l4 4 4-4" 
-                  />
-                </svg>
-              </div>
+              <svg 
+                className="w-8 h-8 text-blue-600 animate-bounce mr-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3" 
+                />
+              </svg>
             </div>
           </div>
         </div>
