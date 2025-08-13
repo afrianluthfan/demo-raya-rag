@@ -4,12 +4,11 @@ import Script from 'next/script';
 
 export default function Home() {
   const initializeChatbot = () => {
-    // Initialize the chatbot with custom daily limit for testing
+    // Initialize the chatbot with custom configuration
     if (typeof window !== 'undefined' && (window as any).RayaChatbot) {
       const chatbot = new (window as any).RayaChatbot({
         position: 'bottom-right',
         primaryColor: '#3b82f6',
-        dailyMessageLimit: 5, // Set to 5 for easier testing
         timezone: 'GMT+7'
       });
 
@@ -82,13 +81,13 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Chatbot Indicator */}
-            <div className="fixed bottom-24 right-8 z-40 flex flex-col items-end space-y-2">
-              <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
-                <p className="text-sm font-medium whitespace-nowrap">Try the chatbot! 👋</p>
+            {/* Chatbot Indicator - Mobile: bottom-left, Desktop: bottom-right */}
+            <div className="fixed bottom-24 left-4 min-[501px]:left-auto min-[501px]:right-8 z-40 flex flex-col items-start min-[501px]:items-end space-y-2">
+              <div className="bg-blue-600 text-white px-3 py-2 min-[501px]:px-4 rounded-lg shadow-lg">
+                <p className="text-xs min-[501px]:text-sm font-medium whitespace-nowrap">Try the chatbot! 👋</p>
               </div>
               <svg 
-                className="w-8 h-8 text-blue-600 animate-bounce mr-4" 
+                className="w-6 h-6 min-[501px]:w-8 min-[501px]:h-8 text-blue-600 animate-bounce ml-2 min-[501px]:ml-0 min-[501px]:mr-4" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
