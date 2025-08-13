@@ -257,6 +257,7 @@
                     font-size: 1rem;
                     border-radius: 0.5rem;
                     background: #f3f4f6;
+                    color: #1f2937;
                     margin-right: 0.5rem;
                 }
 
