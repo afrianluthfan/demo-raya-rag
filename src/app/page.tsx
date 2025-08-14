@@ -160,7 +160,7 @@ export default function Home() {
         <footer className="bg-gray-50 py-8">
           <div className="container mx-auto px-4 text-center">
             <p className="text-gray-600">
-              Powered by Raya RAG Technology • Built with Next.js and Tailwind CSS
+              Made by Desk EDM Bank Raya • Built with Langflow and Qdrant
             </p>
           </div>
         </footer>
