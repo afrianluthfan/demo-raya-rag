@@ -929,38 +929,147 @@
     markdownToHtml(markdown) {
       if (!markdown) return "";
 
-      let html = this.escapeHtml(markdown);
+      let html = markdown;
 
-      // Convert markdown syntax to HTML
-      html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-      html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
-      html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-      html = html.replace(/_(.*?)_/g, "<em>$1</em>");
-      html = html.replace(
-        /`(.*?)`/g,
-        '<code style="background: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.875em;">$1</code>'
-      );
-      html = html.replace(
-        /```([\s\S]*?)```/g,
-        '<pre style="background: #f3f4f6; padding: 0.75rem; border-radius: 0.375rem; overflow-x: auto; margin: 0.5rem 0;"><code style="font-family: monospace; font-size: 0.875em;">$1</code></pre>'
-      );
-      html = html.replace(
-        /\[([^\]]+)\]\(([^)]+)\)/g,
-        '<a href="$2" target="_blank" style="color: #3b82f6; text-decoration: underline;">$1</a>'
-      );
-      html = html.replace(/\n/g, "<br>");
-      html = html.replace(
-        /^[\s]*[-*+][\s]+(.*$)/gim,
-        '<li style="margin-left: 1rem;">$1</li>'
-      );
-      html = html.replace(
-        /(<li.*<\/li>)/s,
-        '<ul style="margin: 0.5rem 0; padding-left: 1rem;">$1</ul>'
-      );
-      html = html.replace(
-        /^[\s]*\d+\.[\s]+(.*$)/gim,
-        '<li style="margin-left: 1rem;">$1</li>'
-      );
+      // First, handle code blocks (must be done before other processing to avoid conflicts)
+      html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
+        const escapedCode = this.escapeHtml(code.trim());
+        return `<pre style="background: #f3f4f6; padding: 0.75rem; border-radius: 0.375rem; overflow-x: auto; margin: 0.5rem 0; white-space: pre-wrap;"><code style="font-family: monospace; font-size: 0.875em;">${escapedCode}</code></pre>`;
+      });
+
+      // Handle inline code (after code blocks to avoid conflicts)
+      html = html.replace(/`([^`]+)`/g, (match, code) => {
+        const escapedCode = this.escapeHtml(code);
+        return `<code style="background: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.875em;">${escapedCode}</code>`;
+      });
+
+      // Handle headings (h1-h6)
+      html = html.replace(/^### (.*$)/gim, '<h3 style="font-size: 1.125rem; font-weight: 600; margin: 1rem 0 0.5rem 0; color: #1f2937;">$1</h3>');
+      html = html.replace(/^## (.*$)/gim, '<h2 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0 0.5rem 0; color: #1f2937;">$1</h2>');
+      html = html.replace(/^# (.*$)/gim, '<h1 style="font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem 0; color: #1f2937;">$1</h1>');
+
+      // Convert the remaining text to HTML-safe format (but preserve already processed HTML)
+      const parts = [];
+      let currentIndex = 0;
+      
+      // Find all HTML tags that we've already created
+      const htmlTagRegex = /<(pre|code|h[1-6])[^>]*>[\s\S]*?<\/\1>/g;
+      let match;
+      
+      while ((match = htmlTagRegex.exec(html)) !== null) {
+        // Add text before this HTML tag (escaped)
+        if (match.index > currentIndex) {
+          const textBefore = html.slice(currentIndex, match.index);
+          parts.push({ type: 'text', content: textBefore });
+        }
+        
+        // Add the HTML tag as-is
+        parts.push({ type: 'html', content: match[0] });
+        currentIndex = match.index + match[0].length;
+      }
+      
+      // Add remaining text
+      if (currentIndex < html.length) {
+        const remainingText = html.slice(currentIndex);
+        parts.push({ type: 'text', content: remainingText });
+      }
+
+      // Process each part
+      html = parts.map(part => {
+        if (part.type === 'html') {
+          return part.content; // Return HTML as-is
+        }
+        
+        let processedText = this.escapeHtml(part.content);
+        
+        // Apply markdown formatting to text parts only
+        // Bold and italic
+        processedText = processedText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        processedText = processedText.replace(/__(.*?)__/g, "<strong>$1</strong>");
+        processedText = processedText.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<em>$1</em>");
+        processedText = processedText.replace(/(?<!_)_([^_\n]+)_(?!_)/g, "<em>$1</em>");
+        
+        // Links
+        processedText = processedText.replace(
+          /\[([^\]]+)\]\(([^)]+)\)/g,
+          '<a href="$2" target="_blank" style="color: #3b82f6; text-decoration: underline;">$1</a>'
+        );
+
+        // Handle unordered lists (*, -, +)
+        const lines = processedText.split('\n');
+        let inUnorderedList = false;
+        let inOrderedList = false;
+        const processedLines = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const trimmedLine = line.trim();
+          
+          // Check for unordered list items
+          const unorderedMatch = trimmedLine.match(/^[-*+]\s+(.+)$/);
+          if (unorderedMatch) {
+            if (inOrderedList) {
+              processedLines.push('</ol>');
+              inOrderedList = false;
+            }
+            if (!inUnorderedList) {
+              processedLines.push('<ul style="margin: 0.5rem 0; padding-left: 1.5rem; list-style-type: disc;">');
+              inUnorderedList = true;
+            }
+            processedLines.push(`<li style="margin: 0.25rem 0;">${unorderedMatch[1]}</li>`);
+            continue;
+          }
+          
+          // Check for ordered list items
+          const orderedMatch = trimmedLine.match(/^(\d+)\.\s+(.+)$/);
+          if (orderedMatch) {
+            if (inUnorderedList) {
+              processedLines.push('</ul>');
+              inUnorderedList = false;
+            }
+            if (!inOrderedList) {
+              processedLines.push('<ol style="margin: 0.5rem 0; padding-left: 1.5rem;">');
+              inOrderedList = true;
+            }
+            processedLines.push(`<li style="margin: 0.25rem 0;">${orderedMatch[2]}</li>`);
+            continue;
+          }
+          
+          // Not a list item, close any open lists
+          if (inUnorderedList) {
+            processedLines.push('</ul>');
+            inUnorderedList = false;
+          }
+          if (inOrderedList) {
+            processedLines.push('</ol>');
+            inOrderedList = false;
+          }
+          
+          // Regular line
+          if (trimmedLine === '') {
+            processedLines.push(''); // Preserve empty lines
+          } else {
+            processedLines.push(line);
+          }
+        }
+        
+        // Close any remaining open lists
+        if (inUnorderedList) {
+          processedLines.push('</ul>');
+        }
+        if (inOrderedList) {
+          processedLines.push('</ol>');
+        }
+        
+        return processedLines.join('\n');
+      }).join('');
+
+      // Convert line breaks to <br> tags, but avoid breaking HTML tags
+      html = html.replace(/\n(?![^\n]*<\/(?:ul|ol|pre|h[1-6])>)/g, '<br>');
+      
+      // Clean up extra line breaks around block elements
+      html = html.replace(/<br>\s*(<(?:ul|ol|pre|h[1-6])[^>]*>)/g, '$1');
+      html = html.replace(/(<\/(?:ul|ol|pre|h[1-6])>)\s*<br>/g, '$1');
 
       return html;
     }
