@@ -1016,7 +1016,7 @@
               processedLines.push('<ul style="margin: 0.5rem 0; padding-left: 1.5rem; list-style-type: disc;">');
               inUnorderedList = true;
             }
-            processedLines.push(`<li style="margin: 0.25rem 0;">${unorderedMatch[1]}</li>`);
+            processedLines.push(`<li>${unorderedMatch[1]}</li>`);
             continue;
           }
           
@@ -1064,12 +1064,15 @@
         return processedLines.join('\n');
       }).join('');
 
-      // Convert line breaks to <br> tags, but avoid breaking HTML tags
-      html = html.replace(/\n(?![^\n]*<\/(?:ul|ol|pre|h[1-6])>)/g, '<br>');
+      // Convert line breaks to <br> tags, but avoid breaking HTML tags and list items
+      html = html.replace(/\n(?![^\n]*<\/(?:ul|ol|pre|h[1-6])>)(?!<li)(?!<\/li>)/g, '<br>');
       
-      // Clean up extra line breaks around block elements
-      html = html.replace(/<br>\s*(<(?:ul|ol|pre|h[1-6])[^>]*>)/g, '$1');
-      html = html.replace(/(<\/(?:ul|ol|pre|h[1-6])>)\s*<br>/g, '$1');
+      // Clean up extra line breaks around block elements and list items
+      html = html.replace(/<br>\s*(<(?:ul|ol|pre|h[1-6]|li)[^>]*>)/g, '$1');
+      html = html.replace(/(<\/(?:ul|ol|pre|h[1-6]|li)>)\s*<br>/g, '$1');
+      
+      // Remove line breaks between list items
+      html = html.replace(/<\/li>\s*<br>\s*<li/g, '</li><li');
 
       return html;
     }
